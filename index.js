@@ -15,11 +15,11 @@ function Gameboard() {
   const placeToken = (row, col, player) => {
     //Need to check if there is already a token placed
     //Also assign the player to the token
-    if (board[row][col] == "x" || board[row][col] == "o") {
+    if (board[row][col].getValue !== 0) {
       return `Area is occupied by an ${board[row][col]}`;
     }
     //If not taken, place token
-    board[row][column].addToken(player);
+    board[row][col].addToken(player);
   };
 
   const printBoard = () => {
@@ -46,6 +46,10 @@ function GameController(
   playerTwoName = "Player Two"
 ) {
   const board = Gameboard();
+  let boardArray = board.getBoard();
+  boardArray = boardArray.map((row) => row.map((cell) => cell.getValue()));
+  console.log(boardArray);
+  //console.log(boardArray);
 
   const players = [
     {
@@ -62,9 +66,9 @@ function GameController(
 
   const switchPlayer = () => {
     if (activePlayer == players[0]) {
-      activePlayer == players[1];
+      activePlayer = players[1];
     } else {
-      activePlayer == players[0];
+      activePlayer = players[0];
     }
   };
 
@@ -83,51 +87,56 @@ function GameController(
 
     board.placeToken(row, col, getActivePlayer().token);
 
-    //checking win conditions
-    if (
-      (board[0][0].getValue() == getActivePlayer().token &&
-        board[0][1].getValue() == getActivePlayer().token &&
-        board[0][2].getValue() == getActivePlayer().token) ||
-      (board[1][0].getValue() == getActivePlayer().token &&
-        board[1][1].getValue() == getActivePlayer().token &&
-        board[1][2].getValue() == getActivePlayer().token) ||
-      (board[2][0].getValue() == getActivePlayer().token &&
-        board[2][1].getValue() == getActivePlayer().token &&
-        board[2][2].getValue() == getActivePlayer().token)
-    ) {
-      console.log(`${getActivePlayer().name} wins!`);
-    } else if (
-      (board[0][0].getValue() == getActivePlayer().token &&
-        board[1][0].getValue() == getActivePlayer().token &&
-        board[2][0].getValue() == getActivePlayer().token) ||
-      (board[0][1].getValue() == getActivePlayer().token &&
-        board[1][1].getValue() == getActivePlayer().token &&
-        board[2][1].getValue() == getActivePlayer().token) ||
-      (board[0][2].getValue() == getActivePlayer().token &&
-        board[1][2].getValue() == getActivePlayer().token &&
-        board[2][2].getValue() == getActivePlayer().token)
-    ) {
-      console.log(`${getActivePlayer().name} wins!`);
-    } else if (
-      (board[0][0].getValue() == getActivePlayer().token &&
-        board[1][1].getValue() == getActivePlayer().token &&
-        board[2][2].getValue() == getActivePlayer().token) ||
-      (board[0][2].getValue() == getActivePlayer().token &&
-        board[1][1].getValue() == getActivePlayer().token &&
-        board[2][0].getValue() == getActivePlayer().token)
-    ) {
+    if (checkForWin(getActivePlayer().token)) {
       console.log(`${getActivePlayer().name} wins!`);
     }
-
-    switchPlayerTurn();
+    switchPlayer();
     printNewRound();
+  };
+
+  const checkForWin = (token) => {
+    // Check rows and columns
+    for (let i = 0; i < 3; i++) {
+      if (
+        boardArray[i][0] === token &&
+        boardArray[i][1] === token &&
+        boardArray[i][2] === token
+      ) {
+        return true; // Row win
+      }
+      if (
+        boardArray[0][i] === token &&
+        boardArray[1][i] === token &&
+        boardArray[2][i] === token
+      ) {
+        return true; // Column win
+      }
+    }
+
+    // Check diagonals
+    if (
+      (boardArray[0][0] === token &&
+        boardArray[1][1] === token &&
+        boardArray[2][2] === token) ||
+      (boardArray[0][2] === token &&
+        boardArray[1][1] === token &&
+        boardArray[2][0] === token)
+    ) {
+      return true; // Diagonal win
+    }
+
+    return false;
   };
   printNewRound();
 
   return {
     playRound,
     getActivePlayer,
+    getBoard: board.getBoard,
   };
 }
 
 const game = GameController();
+console.log("starting");
+console.log(game.getActivePlayer());
+console.log(game.playRound(0, 1));
