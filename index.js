@@ -12,15 +12,18 @@ function Gameboard() {
 
   const getBoard = () => board;
 
-  const placeToken = (row, col, player) => {
+  const placeToken = (row, col, getPlayer, switchPlayer) => {
+    let player = getPlayer();
     //Need to check if there is already a token placed
     //Also assign the player to the token
     if (board[row][col].getValue() !== 0) {
       console.log(`Area is occupied by an ${board[row][col].getValue()}`);
-      return `Area is occupied by an ${board[row][col].getValue()}`;
+      console.log(`Try again`);
+      switchPlayer();
+      return;
     }
     //If not taken, place token
-    board[row][col].addToken(player);
+    board[row][col].addToken(player.token);
   };
 
   const printBoard = () => {
@@ -87,13 +90,15 @@ function GameController(
       `Placing ${getActivePlayer().name}'s ${getActivePlayer().token}.`
     );
 
-    board.placeToken(row, col, getActivePlayer().token);
+    board.placeToken(row, col, getActivePlayer, switchPlayer);
 
     if (checkForWin(getActivePlayer().token)) {
       console.log(`${getActivePlayer().name} wins!`);
+      return "__________________";
     }
     switchPlayer();
     printNewRound();
+    return `__________________`;
   };
 
   const checkForWin = (token) => {
@@ -151,3 +156,5 @@ console.log(game.playRound(0, 2));
 console.log(game.playRound(1, 1));
 console.log(game.playRound(1, 2));
 console.log(game.playRound(2, 0));
+console.log(game.playRound(2, 0));
+console.log(game.playRound(2, 2));
