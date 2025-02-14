@@ -1,4 +1,11 @@
+/*issues:
+  -I think some of the board is having a hard time being
+   transfered over...check GameController()
+  -
+*/
+
 function Gameboard() {
+  console.log("Calling Gameboard...");
   const row = 3;
   const col = 3;
   const board = [];
@@ -6,155 +13,199 @@ function Gameboard() {
   for (let i = 0; i < row; i++) {
     board[i] = [];
     for (let j = 0; j < col; j++) {
-      board[i].push(Cell()); //cell right here
+      board[i].push(Cell());
     }
   }
 
-  const getBoard = () => board;
+  const getBoard = () => {
+    console.log("getBoard...");
+    return board;
+  };
 
-  const placeToken = (row, col, getPlayer, switchPlayer) => {
-    let player = getPlayer();
-    //Need to check if there is already a token placed
-    //Also assign the player to the token
+  const placeToken = (row, col, player) => {
+    console.log("placeToken...");
     if (board[row][col].getValue() !== 0) {
-      console.log(`Area is occupied by an ${board[row][col].getValue()}`);
-      console.log(`Try again`);
-      switchPlayer();
-      return;
+      console.log("This area is taken");
+      return false;
+    } else {
+      board[row][col].addToken(player.token);
+      return true;
     }
-    //If not taken, place token
-    board[row][col].addToken(player.token);
   };
 
   const printBoard = () => {
+    console.log("printBoard...");
     console.log(board.map((row) => row.map((cell) => cell.getValue())));
-    //for UI
+    return board.map((row) => row.map((cell) => cell.getValue()));
   };
+
   return { getBoard, placeToken, printBoard };
 }
 
-//Plan, need to make a cell and that cell will be pushed to the Gamebord
 function Cell() {
+  console.log("Calling Cell...");
   let value = 0;
 
+  const getValue = () => {
+    console.log("getValue...");
+    return value;
+  };
   const addToken = (player) => {
+    console.log("addToken...");
     value = player;
   };
-
-  const getValue = () => value;
-
-  return { addToken, getValue };
+  return { getValue, addToken };
 }
 
 function GameController(
   playerOneName = "Player One",
   playerTwoName = "Player Two"
 ) {
+  console.log("Calling GameController");
   const board = Gameboard();
-  let boardArray = board.getBoard();
-  boardArray = boardArray.map((row) => row.map((cell) => cell.getValue()));
-  console.log(boardArray);
-  //console.log(boardArray);
-
   const players = [
+    { playerName: playerOneName, token: "x" },
     {
-      name: playerOneName,
-      token: "x",
-    },
-    {
-      name: playerTwoName,
+      playerName: playerTwoName,
       token: "o",
     },
   ];
-
   let activePlayer = players[0];
-
+  const getActivePlayer = () => {
+    console.log("getActivePlayer...");
+    return activePlayer;
+  };
   const switchPlayer = () => {
-    if (activePlayer == players[0]) {
-      activePlayer = players[1];
-    } else {
-      activePlayer = players[0];
-    }
+    console.log("switchPlayer...");
+    activePlayer = activePlayer === players[0] ? players[1] : players[0];
   };
-
-  const getActivePlayer = () => activePlayer;
-
-  const printNewRound = () => {
-    board.printBoard();
-
-    console.log(`${getActivePlayer().name}'s turn.`);
-  };
-
   const playRound = (row, col) => {
-    console.log(
-      `Placing ${getActivePlayer().name}'s ${getActivePlayer().token}.`
-    );
+    console.log("playRound...");
+    console.log(`It's ${activePlayer.playerName}'s turn`);
+    let playerTryAgain = board.placeToken(row, col, getActivePlayer());
 
-    board.placeToken(row, col, getActivePlayer, switchPlayer);
-
-    if (checkForWin(getActivePlayer().token)) {
-      console.log(`${getActivePlayer().name} wins!`);
-      return "__________________";
+    if (playerTryAgain == false) {
+      return `Try again ${activePlayer.playerName}`;
     }
-    switchPlayer();
-    printNewRound();
-    return `__________________`;
-  };
+    if (checkForWin()) {
+      console.log("We have a winner");
+      return true;
+    }
+    if (checkForTie()) {
+      console.log("We have a tie");
+      return false;
+    }
 
-  const checkForWin = (token) => {
-    let boardArray = board
-      .getBoard()
-      .map((row) => row.map((cell) => cell.getValue()));
-    // Check rows and columns
+    switchPlayer();
+    // playRound();
+    return `Next turn: ${activePlayer.playerName}`;
+  };
+  const checkForWin = () => {
+    console.log("checkForWin...");
+    let boardArray = board.printBoard();
+
     for (let i = 0; i < 3; i++) {
       if (
-        boardArray[i][0] === token &&
-        boardArray[i][1] === token &&
-        boardArray[i][2] === token
+        boardArray[i][0] === activePlayer.token &&
+        boardArray[i][1] === activePlayer.token &&
+        boardArray[i][2] === activePlayer.token
       ) {
-        return true; // Row win
+        console.log(`${activePlayer.playerName} wins!`);
+        return true;
       }
       if (
-        boardArray[0][i] === token &&
-        boardArray[1][i] === token &&
-        boardArray[2][i] === token
+        boardArray[0][i] === activePlayer.token &&
+        boardArray[1][i] === activePlayer.token &&
+        boardArray[2][i] === activePlayer.token
       ) {
-        return true; // Column win
+        console.log(`${activePlayer.playerName} wins!`);
+        return true;
       }
     }
-
-    // Check diagonals
     if (
-      (boardArray[0][0] === token &&
-        boardArray[1][1] === token &&
-        boardArray[2][2] === token) ||
-      (boardArray[0][2] === token &&
-        boardArray[1][1] === token &&
-        boardArray[2][0] === token)
+      (boardArray[0][0] === activePlayer.token &&
+        boardArray[1][1] === activePlayer.token &&
+        boardArray[2][2] === activePlayer.token) ||
+      (boardArray[0][2] === activePlayer.token &&
+        boardArray[1][1] === activePlayer.token &&
+        boardArray[2][0] === activePlayer.token)
     ) {
-      return true; // Diagonal win
+      console.log(`${activePlayer.playerName} wins!`);
+      return true;
     }
 
     return false;
   };
-  printNewRound();
 
-  return {
-    playRound,
-    getActivePlayer,
-    getBoard: board.getBoard,
+  const checkForTie = () => {
+    let boardArray = board.printBoard();
+    console.log("checkForTie...");
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (boardArray[i][j] === 0) {
+          return false;
+        }
+      }
+    }
+    return true;
   };
+
+  return { getActivePlayer, playRound };
 }
 
-const game = GameController();
-console.log("starting");
-console.log(game.getActivePlayer());
-console.log(game.playRound(0, 1));
-console.log(game.playRound(0, 0));
-console.log(game.playRound(0, 2));
-console.log(game.playRound(0, 2));
-console.log(game.playRound(1, 1));
-console.log(game.playRound(1, 2));
-console.log(game.playRound(2, 0));
-console.log(game.playRound(2, 0));
-console.log(game.playRound(2, 2));
+function ScreenController() {
+  let game = GameController();
+
+  const playerTurnDiv = document.querySelector(".turn");
+  const boardCells = document.querySelectorAll(".cell");
+  const resetBtn = document.querySelector(".reset");
+
+  const updateScreen = () => {
+    playerTurnDiv.textContent = `${game.getActivePlayer().playerName}'s turn`;
+  };
+
+  resetBtn.addEventListener("click", () => {
+    console.log("Game resetting...");
+
+    // Reset the game logic
+    game = GameController(); // Reinitialize the game
+
+    // Reset the game state flag
+    gameOver = false;
+
+    // Reset the UI board
+    boardCells.forEach((cell) => {
+      cell.textContent = "";
+    });
+
+    // Reset turn text
+    playerTurnDiv.textContent = `${game.getActivePlayer().playerName}'s turn`;
+  });
+
+  let gameOver = false;
+
+  boardCells.forEach((cell, index) => {
+    const row = Math.floor(index / 3);
+    const col = index % 3;
+
+    cell.addEventListener("click", () => {
+      console.log("clicked");
+      if (gameOver || cell.textContent !== "") return;
+      const activePlayer = game.getActivePlayer();
+      cell.textContent = activePlayer.token.toUpperCase();
+      winTie = game.playRound(row, col);
+      console.log(`winTie: ${winTie}`);
+      if (winTie == true) {
+        playerTurnDiv.textContent = `${activePlayer.playerName} wins!`;
+        gameOver = true;
+      } else if (winTie == false) {
+        playerTurnDiv.textContent = `It's a tie`;
+        gameOver = true;
+      } else {
+        updateScreen();
+      }
+    });
+  });
+}
+
+ScreenController();
